@@ -205,10 +205,8 @@ class KernelWithPartialAnnotationCost2(rpt.base.BaseCost):
                     K = K + update
                     #print(np.linalg.norm(update))
                     if np.linalg.norm(update) > 1e-3:
-                    # 1e-2:
-                        # the convergence is detected when there is a minimum number of iteration
-                        # during which the upate is below a minimal value
-                        #print("lama")
+
+
                         #print(np.linalg.norm(update))
                         upd.append(np.linalg.norm(update,ord=1))
                         convergence = True
@@ -430,9 +428,7 @@ class MetricWithPartialAnnotationCost(rpt.base.BaseCost):
                     #print(np.linalg.norm(update))
                     if np.linalg.norm(update) > 1e-3:
                     # 1e-2:
-                        # the convergence is detected when there is a minimum number of iteration
-                        # during which the upate is below a minimal value
-                        #print("lama")
+
                         upd.append(np.linalg.norm(update,ord=1))
 
                         convergence = True
