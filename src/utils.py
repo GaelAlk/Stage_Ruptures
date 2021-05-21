@@ -27,7 +27,6 @@ def create_labels(bkps_list, annotation_ratio=1.0):
 
 def compute_f1(precision, recall):
     return 2 * (recall * precision) / (recall + precision)
-<<<<<<< HEAD
 
 def evaluate_cross_val(cost, signals, bkps_list, prefix, search_method,pen,lambd):
     hausdorff_score = []
@@ -58,5 +57,3 @@ def evaluate_cross_val(cost, signals, bkps_list, prefix, search_method,pen,lambd
     plt.show()
 
     return hausdorff_score,f1_score,np.mean(moy)
-=======
->>>>>>> dc4773e245cecccec7cbaca39b3de116b9fb52b3
