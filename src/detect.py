@@ -79,6 +79,7 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
         """
         Calcul de la fonction cible pour un signal.
         On garde les ruptures dans une variable globale pour l'utiliser dans la fonction «jacob_un»
+        même signature que fonction_cible, avec signal : np.array et bkps : List
         """
         penexp=exp_pen(pen,features,d)
 
@@ -95,6 +96,7 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
     def jacob_un(self,pen,features,signal,bkps,cout,exp_pen,d):
         """
         Calcul le jacobien sur un seul signal.
+        Même signature que jacob, avec signal = np.array et bkps : List
         """
         penexp=exp_pen(pen,features,d)
         my_bkps=self.bkps_pelt
@@ -108,7 +110,13 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
     def jacob(self,pen,signal,bkps,cout,pen_methode):
         """
         Retourne la variable globale jac.
-        Fonction nécessaire pour utiliser minimize et toujours appellée après «fonction_cible»
+        Fonction nécessaire pour utiliser minimize et toujours appellée après «fonction_cible».
+        La signature permet de l'utiliser dans minimize.
+        pen : List qui évaluant la fonction. Il s'agit des lambdas dans exp(lambda*features).
+        signaux : List de np.array contenant les signaux
+        bkps_list : List de List contenant les points de ruptures
+        cout : rpt.base.cost
+        pen_methode : pen_BIC ou exp_pen
         """
         #jac
         #del jac
@@ -117,6 +125,11 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
     def fonction_cible(self,pen,signaux,bkps_list,cout,pen_methode):
             """
             Fonction cible du problème de minimisation convexe
+            pen : List qui évaluant la fonction. Il s'agit des lambdas dans exp(lambda*features).
+            signaux : List de np.array contenant les signaux
+            bkps_list : List de List contenant les points de ruptures
+            cout : rpt.base.cost
+            pen_methode : pen_BIC ou exp_pen
             """
             cible=0
             jac=0
@@ -135,8 +148,13 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
     def calcul_penality(self,signaux,bkps):
         """
         Calcul la pénalité.
+        signaux : List de np.array contenant les signaux.
+        bkps : List de List contenant les points de ruptures.
         """
-        j=np.random.randint(1,len(signaux))
+        if(len(signaux)==1):
+            j=np.random.randint(1,2)
+        else:
+            j=np.random.randint(1,len(signaux))
         init=minimize(fun=self.fonction_cible,args=([signaux[j]],[bkps[j]],self.cost,self.exp_pen),x0=[1,1],method="CG",jac=self.jacob,tol=1e-10)
         solution=minimize(fun=self.fonction_cible,args=(signaux,bkps,self.cost,self.exp_pen),x0=init.x,method="CG",jac=self.jacob,tol=1e-1)
         self.trained=True
