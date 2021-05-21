@@ -13,7 +13,11 @@ from ruptures.utils import sanity_check
 class Pelt_lambda(rpt.detection.pelt.Pelt):
 
 
+<<<<<<< HEAD
+    def __init__(self, model="l2", custom_cost=None, min_size=3, jump=1, params=None):
+=======
     def __init__(self, model="l2", custom_cost=None, min_size=2, jump=5, params=None):
+>>>>>>> dc4773e245cecccec7cbaca39b3de116b9fb52b3
         """Initialize a Pelt instance.
         Args:
             model (str, optional): segment model, ["l1", "l2", "rbf"]. Not used if ``'custom_cost'`` is not None.
@@ -26,6 +30,11 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
         self.trained=False
         self.features=None
         self.lambd=None
+<<<<<<< HEAD
+        self.jac=None
+        self.bkps_pelt=None
+=======
+>>>>>>> dc4773e245cecccec7cbaca39b3de116b9fb52b3
         super().__init__(model=model, custom_cost=custom_cost,min_size= min_size,jump= jump,params= params)
 
 
@@ -47,12 +56,44 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
         self.features=self.calcul_features(signal)
         return self
 
+<<<<<<< HEAD
+    """
+    Définition de toutes les fonctions nécessaires à l'utilisation de minimize.
+    Minimise la fonction «fonction_cible» qui est définie par la somme de de «fonction_cible_un» pour chaque signal dans l'ensemble.
+    La fonction «fonction_cible» calcul le jacobien qui est stocké dans une variable globale pour n'avoir à calculer qu'une seule fois la minimisation.
+    """
+
+    def calcul_features(self,signal):
+        """
+        Cette définition du bruit est particulièrement efficace pour les signaux que j'utilise, mais nous pouvons la modifier pour la suite
+        """
+        bruit=np.log(np.var([signal[i][0] for i in range(40)]))
+=======
     def calcul_features(self,signal):
         bruit=np.log(np.var(signal))
+>>>>>>> dc4773e245cecccec7cbaca39b3de116b9fb52b3
         longueur=np.log(np.log(len(signal)))
         return [bruit,longueur]
 
     def exp_pen(self,penalisation,features,d):
+<<<<<<< HEAD
+        """
+        Pénalisation exponentielle ou pénalisation «stage»
+        """
+        return np.exp(np.sum(np.array(features)*np.array(penalisation)))
+
+    def pen_BIC(self,penalisation,features,d):
+        """
+        Pénalisation bic (gaussien)
+        """
+        return 2*np.exp(np.sum(features))*(d+1)
+
+    def fonction_cible_un(self,pen,features,signal,bkps,cout,exp_pen,d):
+        """
+        Calcul de la fonction cible pour un signal.
+        On garde les ruptures dans une variable globale pour l'utiliser dans la fonction «jacob_un»
+        """
+=======
         return np.exp(np.sum(np.array(features)*np.array(penalisation)))
 
     def pen_BIC(self,penalisation,features,d):
@@ -60,10 +101,67 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
 
     def fonction_cible_un(self,pen,features,signal,bkps,cout,exp_pen,d):
 
+>>>>>>> dc4773e245cecccec7cbaca39b3de116b9fb52b3
         penexp=exp_pen(pen,features,d)
 
         algo = rpt.Pelt(custom_cost=cout, min_size=3, jump=1).fit(signal)
         my_bkps = algo.predict(pen=penexp)
+<<<<<<< HEAD
+
+        calcul = cout.sum_of_costs(bkps)-cout.sum_of_costs(my_bkps)+penexp*(len(bkps)-len(my_bkps))
+        #global bkps_pelt
+        self.bkps_pelt=my_bkps
+
+        return calcul
+
+
+    def jacob_un(self,pen,features,signal,bkps,cout,exp_pen,d):
+        """
+        Calcul le jacobien sur un seul signal.
+        """
+        penexp=exp_pen(pen,features,d)
+        my_bkps=self.bkps_pelt
+
+        #del bkps_pelt
+
+        calcul=np.array(features)*penexp*(len(bkps)-len(my_bkps))
+
+        return calcul
+
+    def jacob(self,pen,signal,bkps,cout,pen_methode):
+        """
+        Retourne la variable globale jac.
+        Fonction nécessaire pour utiliser minimize et toujours appellée après «fonction_cible»
+        """
+        #jac
+        #del jac
+        return self.jac
+
+    def fonction_cible(self,pen,signaux,bkps_list,cout,pen_methode):
+            """
+            Fonction cible du problème de minimisation convexe
+            """
+            cible=0
+            jac=0
+            self.jac=0
+            for i,j in zip(signaux,bkps_list):
+                cout.fit(signal=i)
+                features=self.calcul_features(i)
+                d=i[0].shape[0]
+                cible=cible+self.fonction_cible_un(pen,features,i,j,cout,pen_methode,d)
+                jac=jac+self.jacob_un(pen,features,i,j,cout,pen_methode,d)
+
+            jac=jac/len(signaux)
+            self.jac=jac
+            return cible/len(signaux)
+
+    def calcul_penality(self,signaux,bkps):
+        """
+        Calcul la pénalité.
+        """
+        j=np.random.randint(1,len(signaux))
+        init=minimize(fun=self.fonction_cible,args=([signaux[j]],[bkps[j]],self.cost,self.exp_pen),x0=[1,1],method="CG",jac=self.jacob,tol=1e-10)
+=======
         #fig, ax_array = rpt.display(signal,bkps, my_bkps)
 
         calcul = cout.sum_of_costs(bkps)-cout.sum_of_costs(my_bkps)+penexp*(len(bkps)-len(my_bkps))
@@ -106,6 +204,7 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
     def calcul_penality(self,signaux,bkps):
         j=np.random.randint(1,len(signaux))
         init=minimize(fun=self.fonction_cible,args=([signaux[j]],[bkps[j]],self.cost,self.exp_pen),x0=[0,0],method="CG",jac=self.jacob,tol=1e-10)
+>>>>>>> dc4773e245cecccec7cbaca39b3de116b9fb52b3
         solution=minimize(fun=self.fonction_cible,args=(signaux,bkps,self.cost,self.exp_pen),x0=init.x,method="CG",jac=self.jacob,tol=1e-1)
         self.trained=True
         self.lambd=solution.x
@@ -123,6 +222,10 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
         Returns:
             list: sorted list of breakpoints
         """
+<<<<<<< HEAD
+
+        #J'ai anticipé l'intégration du calcul de pénalité bic
+=======
         """
         if(self.trained):
             pen= self.calcul_penality()
@@ -131,6 +234,7 @@ class Pelt_lambda(rpt.detection.pelt.Pelt):
         """
 
 
+>>>>>>> dc4773e245cecccec7cbaca39b3de116b9fb52b3
         pen=eval("self."+pena)(self.lambd,self.calcul_features(self.cost.signal),self.d)
         # raise an exception in case of impossible segmentation configuration
         if not sanity_check(
