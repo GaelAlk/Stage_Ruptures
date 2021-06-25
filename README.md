@@ -1,7 +1,46 @@
 # Stage Ruptures
 
 
+## How to use Alpin
 
+```python
+from src.alpin import Alpin
+
+list_of_signals=[signal_1, signal_2,...]
+list_of_bkps=[bkps_1, bkps_2,...]
+
+
+estimator = rpt.Pelt(model="l2")
+
+algo = Alpin(estimator=estimator).fit(list_of_signals, list_of_bkps)
+
+print(f"Best penalty value: {algo.get_best_penalty(signal_1)}")
+print(f"Best penalty weights: {algo.best_penalty_weights}")
+
+# prediction with the best found parameters
+my_bkps = algo.predict(signal=signal_1)
+```
+
+By default, the only signal feature taken into account is `log(n_samples)` where `n_samples` is the signal length.
+To use more features, for instance the variance, do:
+
+```python
+import numpy as np
+
+def feature_funct(signal: np.ndarray)->np.ndarray:
+    # the last element (2.) is simply a constant.
+    return np.array([np.log(signal.shape[0]), signal.var(), 2.])
+
+algo = Alpin(estimator=estimator, feature_func=feature_func).fit(list_of_signals, list_of_bkps)
+
+print(f"Best penalty value: {algo.get_best_penalty(signal_1)}")
+print(f"Best penalty weights: {algo.best_penalty_weights}")
+
+# prediction with the best found parameters
+my_bkps = algo.predict(signal=signal_1)
+```
+
+----
 
 Utilisation : 
 ```
